@@ -9,6 +9,9 @@ include Babushka::DSL
 require 'rubygems'
 require 'rspec'
 require 'ir_b'
+require 'webmock'
+
+Dir.glob(File.dirname(__FILE__) + "/support/*.rb").each {|p| require p }
 
 # RSpec::Core::Example.send :include, Babushka::Helpers
 RSpec::Core::ExampleGroup.send :include, Babushka::LogHelpers

@@ -6,4 +6,5 @@ group :test do
   gem 'fuubar'
   gem 'cloudservers'
   gem 'ir_b'
+  gem 'webmock'
 end

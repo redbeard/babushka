@@ -1,43 +1,39 @@
 module Babushka
   module RunHelpers
-    include LogHelpers
-    include ShellHelpers
-    include PathHelpers
-
     def hostname
-      removed! :instead => "#shell directly", :example => "shell('hostname -f')"
+      LogHelpers.removed! :instead => "#shell directly", :example => "shell('hostname -f')"
     end
 
     def rake cmd, &block
-      removed! :instead => "#shell directly", :example => "shell({'RAILS_ENV' => env}, 'rake #{cmd}')"
+      LogHelpers.removed! :instead => "#shell directly", :example => "shell({'RAILS_ENV' => env}, 'rake #{cmd}')"
     end
 
     def bundle_rake cmd, &block
-      removed! :instead => "#shell directly", :example => "shell({'RAILS_ENV' => 'env'}, 'bundle exec #{cmd}')"
+      LogHelpers.removed! :instead => "#shell directly", :example => "shell({'RAILS_ENV' => 'env'}, 'bundle exec #{cmd}')"
     end
 
     def check_file file_name, method_name
-      removed! :instead => "Fancypath##{method_name}", :example => "path.p.#{method_name}"
+      LogHelpers.removed! :instead => "Fancypath##{method_name}", :example => "path.p.#{method_name}"
     end
 
     def grep pattern, file
-      removed! :instead => 'Fancypath#grep', :example => "#{file.inspect}.p.grep(#{pattern.inspect})"
+      LogHelpers.removed! :instead => 'Fancypath#grep', :example => "#{file.inspect}.p.grep(#{pattern.inspect})"
     end
 
     def change_line line, replacement, filename
-      removed! :instead => "sed via #shell", :example => "shell(\"sed -i'' -e 's/^#{Regexp.escape(line)}$/#{replacement}/' '#{filename}'\")"
+      LogHelpers.removed! :instead => "sed via #shell", :example => "shell(\"sed -i'' -e 's/^#{Regexp.escape(line)}$/#{replacement}/' '#{filename}'\")"
     end
 
     def insert_into_file insert_before, path, lines, opts = {}
-      removed! :instead => "a template with #render_erb"
+      LogHelpers.removed! :instead => "a template with #render_erb"
     end
 
     def change_with_sed keyword, from, to, file
-      removed! :instead => "sed via #shell", :example => "shell(\"sed -i'' -e 's/^#{Regexp.escape(keyword)}\\s+#{Regexp.escape(from)}\\b/#{keyword} #{to}/' '#{file}'\")"
+      LogHelpers.removed! :instead => "sed via #shell", :example => "shell(\"sed -i'' -e 's/^#{Regexp.escape(keyword)}\\s+#{Regexp.escape(from)}\\b/#{keyword} #{to}/' '#{file}'\")"
     end
 
     def append_to_file text, file, opts = {}
-      removed! :instead => 'Fancypath#append', :example => "'#{file}'.p.append(#{text.inspect})"
+      LogHelpers.removed! :instead => 'Fancypath#append', :example => "'#{file}'.p.append(#{text.inspect})"
     end
 
     def _by_babushka
@@ -67,20 +63,20 @@ module Babushka
     end
 
     def yaml path
-      removed! :instead => 'Fancypath#yaml', :example => "'#{path}'.p.yaml"
+      LogHelpers.removed! :instead => 'Fancypath#yaml', :example => "'#{path}'.p.yaml"
     end
 
     def render_erb erb, opts = {}
       if (path = erb_path_for(erb)).nil?
-        log_error "If you use #render_erb within a dynamically defined dep, you have to give the full path to the erb template."
+        LogHelpers.log_error "If you use #render_erb within a dynamically defined dep, you have to give the full path to the erb template."
       elsif !File.exists?(path)
-        log_error "Couldn't find erb to render at #{path}."
+        LogHelpers.log_error "Couldn't find erb to render at #{path}."
       elsif File.exists?(path)
         Renderable.new(opts[:to]).render(path, opts.merge(:context => self)).tap {|result|
           if result
-            log "Rendered #{opts[:to]}."
+            LogHelpers.log "Rendered #{opts[:to]}."
           else
-            log_error "Couldn't render #{opts[:to]}."
+            LogHelpers.log_error "Couldn't render #{opts[:to]}."
           end
         }
       end
@@ -95,11 +91,11 @@ module Babushka
     end
 
     def log_and_open message, url
-      removed! :instead => "a plain #log with the URL", :example => "log('Download here: http://website.org')"
+      LogHelpers.removed! :instead => "a plain #log with the URL", :example => "log('Download here: http://website.org')"
     end
 
     def mysql cmd, username = 'root', include_password = true
-      removed! :instead => "#shell directly", :example => "shell('mysql', '-u', username, :input => cmd.end_with(';'))"
+      LogHelpers.removed! :instead => "#shell directly", :example => "shell('mysql', '-u', username, :input => cmd.end_with(';'))"
     end
   end
 end

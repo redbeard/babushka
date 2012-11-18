@@ -220,21 +220,21 @@ end
 
 describe "log_shell" do
   it "should log correctly for a successful command" do
-    should_receive(:log).with("Getting uptime...", {:newline=>false}).once
+    LogHelpers.should_receive(:log).with("Getting uptime...", {:newline=>false}).once
     should_receive(:shell).with('uptime', {:spinner=>true}).and_return("days and days")
-    should_receive(:log).with(" done.", {:as=>nil, :indentation=>false}).once
+    LogHelpers.should_receive(:log).with(" done.", {:as=>nil, :indentation=>false}).once
     log_shell 'Getting uptime', 'uptime'
   end
   it "should log correctly for a failing command" do
-    should_receive(:log).with("Setting sail for fail...", {:newline=>false}).once
+    LogHelpers.should_receive(:log).with("Setting sail for fail...", {:newline=>false}).once
     should_receive(:shell).with('false', {:spinner=>true}).and_return(nil)
-    should_receive(:log).with(" failed", {:as=>:error, :indentation=>false}).once
+    LogHelpers.should_receive(:log).with(" failed", {:as=>:error, :indentation=>false}).once
     log_shell 'Setting sail for fail', 'false'
   end
   it "should handle env vars" do
-    should_receive(:log).with("Echoing some vars...", {:newline=>false}).once
+    LogHelpers.should_receive(:log).with("Echoing some vars...", {:newline=>false}).once
     should_receive(:shell).with({'KEY' => 'value'}, 'echo $KEY', {:spinner=>true}).and_return('value')
-    should_receive(:log).with(" done.", {:as=>nil, :indentation=>false}).once
+    LogHelpers.should_receive(:log).with(" done.", {:as=>nil, :indentation=>false}).once
     log_shell 'Echoing some vars', {'KEY' => 'value'}, 'echo $KEY'
   end
 end

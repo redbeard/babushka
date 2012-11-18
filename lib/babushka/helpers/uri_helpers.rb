@@ -2,7 +2,7 @@ module Babushka
   module UriHelpers
 
     def setup_source_uris
-      deprecated! '2013-04-21', :method_name => "#setup_source_uris isn't required anymore and now has no effect, and so"
+      LogHelpers.deprecated! '2013-04-21', :method_name => "#setup_source_uris isn't required anymore and now has no effect, and so"
     end
 
     def uri_processor(method_name)
@@ -10,7 +10,7 @@ module Babushka
     end
 
     def process_sources &block
-      deprecated! '2013-04-21', :instead => 'sources.each {|uri| Resource.extract(uri) { ... } }'
+      LogHelpers.deprecated! '2013-04-21', :instead => 'sources.each {|uri| Resource.extract(uri) { ... } }'
       uris = source.map(&uri_processor(:escape)).map(&uri_processor(:parse))
       extra_uris = extra_source.map(&uri_processor(:escape)).map(&uri_processor(:parse)) if respond_to?(:extra_source)
 
@@ -19,7 +19,7 @@ module Babushka
     end
 
     def handle_source uri, &block
-      deprecated! '2013-04-21', :instead => 'Resource.extract(uri) { ... }'
+      LogHelpers.deprecated! '2013-04-21', :instead => 'Resource.extract(uri) { ... }'
       Resource.extract uri, &block
     end
 

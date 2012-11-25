@@ -3,10 +3,6 @@ module Babushka
   end
 
   class Asset
-    extend ShellHelpers
-    include ShellHelpers
-    include PathHelpers
-
     def self.detect_type_by_extension path
       ASSET_TYPES.keys.detect {|key|
         ASSET_TYPES[key][:exts].any? {|extension|
@@ -17,7 +13,7 @@ module Babushka
 
     def self.detect_type_by_contents path
       ASSET_TYPES.keys.detect {|key|
-        shell("file '#{path}'")[ASSET_TYPES[key][:file_match]]
+        ShellHelpers.shell("file '#{path}'")[ASSET_TYPES[key][:file_match]]
       }
     end
 
@@ -45,16 +41,16 @@ module Babushka
     end
 
     def extract &block
-      cd(build_prefix, :create => true) { process_extract(&block) }
+      PathHelpers.cd(build_prefix, :create => true) { process_extract(&block) }
     end
 
     def process_extract &block
-      shell("mkdir -p '#{name}'") and
-      cd(name) {
-        unless log_shell("Extracting #{filename}", extract_command)
+      ShellHelpers.shell("mkdir -p '#{name}'") and
+      PathHelpers.cd(name) {
+        unless ShellHelpers.log_shell("Extracting #{filename}", extract_command)
           log_error "Couldn't extract #{path} - probably a bad download."
         else
-          cd(content_subdir) {
+          PathHelpers.cd(content_subdir) {
             block.nil? or block.call(self)
           }
         end
@@ -89,7 +85,7 @@ module Babushka
 
   class FileAsset < Asset
     def extract &block
-      in_download_dir {
+      PathHelpers.in_download_dir {
         block.call(self)
       }
     end
@@ -117,17 +113,17 @@ module Babushka
 
   class DmgAsset < Asset
     def extract &block
-      in_download_dir {
-        output = log_shell "Attaching #{filename}", "hdiutil attach '#{filename.p.basename}'"
+      PathHelpers.in_download_dir {
+        output = ShellHelpers.log_shell "Attaching #{filename}", "hdiutil attach '#{filename.p.basename}'"
         if output.nil?
           log_error "Couldn't mount #{filename.p}."
         elsif (path = mountpoint_for(output)).nil?
           raise "Couldn't find where `hdiutil` mounted #{filename.p}."
         else
-          cd(path) {
+          PathHelpers.cd(path) {
             block.call(self)
           }.tap {
-            log_shell "Detaching #{filename}", "hdiutil detach '#{path}'"
+            ShellHelpers.log_shell "Detaching #{filename}", "hdiutil detach '#{path}'"
           }
         end
       }

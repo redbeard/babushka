@@ -2,8 +2,6 @@
 
 module Babushka
   class Cmdline
-    extend LogHelpers
-
     handle('global', "Options that are valid for any handler") {
       opt '-v', '--version',     "Print the current version"
       opt '-h', '--help',        "Show this information"
@@ -20,13 +18,13 @@ module Babushka
         Helpers.print_handlers
         Helpers.print_notes
       elsif (handler = Handler.for(cmd.argv.first)).nil?
-        log "#{cmd.argv.first.capitalize}? I have honestly never heard of that."
+        LogHelpers.log "#{cmd.argv.first.capitalize}? I have honestly never heard of that."
       else
-        log "\n#{handler.name} - #{handler.description}"
+        LogHelpers.log "\n#{handler.name} - #{handler.description}"
         cmd.parse(&handler.opt_definer)
         cmd.print_usage
       end
-      log "\n"
+      LogHelpers.log "\n"
       true
     }
 
@@ -56,7 +54,7 @@ module Babushka
         fail_with "'#{bad_var}' looks like a var but it doesn't make sense."
       elsif dep_names.empty?
         fail_with "Nothing to do."
-      elsif cmd.opts[:track_blocks] && !which('mate')
+      elsif cmd.opts[:track_blocks] && !ShellHelpers.which('mate')
         fail_with "The --track-blocks option requires TextMate, and the `mate` helper.\nOn a Mac, you can install them like so:\n  babushka benhoskings:textmate"
       else
         Base.task.process dep_names, vars.map {|i|
@@ -79,7 +77,7 @@ module Babushka
         begin
           Source.new(cmd.argv.first, :name => cmd.opts[:add]).add!
         rescue SourceError => e
-          log_error e.message
+          LogHelpers.log_error e.message
         end
       elsif cmd.opts.has_key?(:update)
         Base.sources.update!
@@ -103,7 +101,7 @@ module Babushka
         results = Helpers.search_results_for(search_term)
 
         if results.empty?
-          log "Never seen a dep with '#{search_term}' in its name."
+          LogHelpers.log "Never seen a dep with '#{search_term}' in its name."
         else
           Helpers.print_search_results search_term, results
           true
@@ -120,7 +118,9 @@ module Babushka
         fail_with "Can't edit '#{dep.name}, since it wasn't loaded from a file."
       else
         file, line = dep.context.source_location
-        editor_var = ENV['BABUSHKA_EDITOR'] || ENV['VISUAL'] || ENV['EDITOR'] || which('subl') || which('mate') || which('vim') || which('vi')
+        editor_var = %w[BABUSHKA_EDITOR VISUAL EDITOR].pick {|i| ENV[i] } ||
+                     %w[subl mate vim vi].pick {|i| ShellHelpers.which(i) }
+
         case editor_var
         when /^subl/
           exec "subl -n '#{file}':#{line}"

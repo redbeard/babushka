@@ -3,8 +3,6 @@ require 'optparse'
 module Babushka
   class Cmdline
     class Parser
-      include LogHelpers
-
       attr_reader :verb, :argv, :opts
 
       def self.for argv
@@ -28,11 +26,11 @@ module Babushka
         LogHelpers.debug(Base.runtime_info)
         Handler.for(verb).handler.call self
       rescue OptionParser::ParseError => e
-        log_error "The #{e.args.first} option #{error_reason(e)}. #{hint}"
+        LogHelpers.log_error "The #{e.args.first} option #{error_reason(e)}. #{hint}"
       end
 
       def print_usage
-        log parser.to_s.sub(/^Usage:.*$/, '')
+        LogHelpers.log parser.to_s.sub(/^Usage:.*$/, '')
       end
 
       def parse &blk

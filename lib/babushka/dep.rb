@@ -24,9 +24,6 @@ module Babushka
 
 
   class Dep
-    include LogHelpers
-    extend LogHelpers
-
     attr_reader :name, :params, :args, :opts, :vars, :dep_source, :load_path
     attr_accessor :result_message
 
@@ -82,9 +79,9 @@ module Babushka
     # this same method on the one chosen by the user, if any.
     def self.find_or_suggest dep_name, opts = {}, &block
       if (dep = Dep(dep_name, opts)).nil?
-        log_stderr "#{dep_name.to_s.colorize 'grey'} #{"<- this dep isn't defined!".colorize('red')}"
+        LogHelpers.log_stderr "#{dep_name.to_s.colorize 'grey'} #{"<- this dep isn't defined!".colorize('red')}"
         suggestions = Base.sources.current_names.similar_to(dep_name.to_s)
-        log "Perhaps you meant #{suggestions.map {|s| "'#{s}'" }.to_list(:conj => 'or')}?".colorize('grey') if suggestions.any?
+        LogHelpers.log "Perhaps you meant #{suggestions.map {|s| "'#{s}'" }.to_list(:conj => 'or')}?".colorize('grey') if suggestions.any?
       elsif block.nil?
         dep
       else
@@ -222,7 +219,7 @@ module Babushka
       Base.task.cached(
         cache_key, :hit => lambda {|value| log_cached(value) }
       ) {
-        log logging_name, :closing_status => (Base.task.opt(:dry_run) ? :dry_run : true) do
+        LogHelpers.log logging_name, :closing_status => (Base.task.opt(:dry_run) ? :dry_run : true) do
           process!
         end
       }
@@ -255,11 +252,11 @@ module Babushka
 
     def process!
       if context.failed?
-        log_error "This dep previously failed to load."
+        LogHelpers.log_error "This dep previously failed to load."
       elsif Base.task.callstack.include? self
-        log_error "Oh crap, endless loop! (#{Base.task.callstack.push(self).drop_while {|dep| dep != self }.map(&:name).join(' -> ')})"
+        LogHelpers.log_error "Oh crap, endless loop! (#{Base.task.callstack.push(self).drop_while {|dep| dep != self }.map(&:name).join(' -> ')})"
       elsif !opts[:for].nil? && !Babushka.host.matches?(opts[:for])
-        log_ok "Not required on #{Babushka.host.differentiator_for opts[:for]}."
+        LogHelpers.log_ok "Not required on #{Babushka.host.differentiator_for opts[:for]}."
       else
         Base.task.callstack.push self
         process_tree.tap {
@@ -267,8 +264,8 @@ module Babushka
         }
       end
     rescue UnmeetableDep => e
-      log_error e.message
-      log "I don't know how to fix that, so it's up to you. :)"
+      LogHelpers.log_error e.message
+      LogHelpers.log "I don't know how to fix that, so it's up to you. :)"
       nil
     rescue StandardError => e
       log_exception_in_dep e
@@ -316,7 +313,7 @@ module Babushka
           if !process_requirements(:requires_when_unmet)
             false # install-time deps unmet
           else
-            log 'meet' do
+            LogHelpers.log 'meet' do
               process_task(:before) and process_task(:meet) and process_task(:after)
             end
             process_met_task
@@ -333,7 +330,7 @@ module Babushka
 
     def run_met_task task_opts = {}
       process_task(:met?).tap {|result|
-        log result_message, :as => (:error unless result || task_opts[:initial]) unless result_message.nil?
+        LogHelpers.log result_message, :as => (:error unless result || task_opts[:initial]) unless result_message.nil?
         self.result_message = nil
       }
     end
@@ -365,7 +362,7 @@ module Babushka
     def log_exception_in_dep e
       Babushka::Logging.log_exception(e)
       advice = e.is_a?(DepDefinitionError) ? "Looks like a problem with '#{name}' - check" : "Check"
-      log "#{advice} #{(e.backtrace.detect {|l| l[load_path.to_s] } || load_path).sub(/\:in [^:]+$/, '')}." unless load_path.nil?
+      LogHelpers.log "#{advice} #{(e.backtrace.detect {|l| l[load_path.to_s] } || load_path).sub(/\:in [^:]+$/, '')}." unless load_path.nil?
     end
 
     def track_block_for task_name
@@ -378,9 +375,9 @@ module Babushka
 
     def log_cached result
       if result
-        log "#{Logging::TickChar} #{name} (cached)".colorize('green')
+        LogHelpers.log "#{Logging::TickChar} #{name} (cached)".colorize('green')
       elsif Base.task.opt(:dry_run)
-        log "~ #{name} (cached)".colorize('blue')
+        LogHelpers.log "~ #{name} (cached)".colorize('blue')
       end
     end
 

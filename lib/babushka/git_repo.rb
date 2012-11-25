@@ -26,15 +26,12 @@ module Babushka
   # rebasing, check out grit. This class is just a little `git` wrapper.
   #
   class GitRepo
-    include ShellHelpers
-    extend ShellHelpers
-
     attr_reader :path
 
     # The full path to the root of the repo {path} is within, if it is within
     # one somewhere; otherwise nil.
     def self.repo_for path
-      maybe = shell?("git rev-parse --git-dir", :cd => path) if path.p.dir?
+      maybe = ShellHelpers.shell?("git rev-parse --git-dir", :cd => path) if path.p.dir?
 
       if maybe == '.git'
         path.p
@@ -75,7 +72,7 @@ module Babushka
       if !exists?
         raise GitRepoError, "There is no repo at #{@path}."
       else
-        shell cmd, opts.merge(:cd => root), &block
+        ShellHelpers.shell cmd, opts.merge(:cd => root), &block
       end
     end
 
@@ -83,7 +80,7 @@ module Babushka
       if !exists?
         raise GitRepoError, "There is no repo at #{@path}."
       else
-        shell? cmd, opts.merge(:cd => root)
+        ShellHelpers.shell? cmd, opts.merge(:cd => root)
       end
     end
 
@@ -230,7 +227,7 @@ module Babushka
     # nonexistent; an error is raised if the local repo already exists.
     def clone! from
       raise GitRepoExists, "Can't clone #{from} to existing path #{path}." if exists?
-      shell("git clone '#{from}' '#{path.basename}'", :cd => path.parent, :create => true) {|shell|
+      ShellHelpers.shell("git clone '#{from}' '#{path.basename}'", :cd => path.parent, :create => true) {|shell|
         shell.ok? || raise(GitRepoError, "Couldn't clone to #{path}: #{error_message_for shell.stderr}")
       }
     end

@@ -131,8 +131,6 @@ module Babushka
   end
 
   class Logging
-    extend LogHelpers
-
     TickChar = '✓'
     CrossChar = '✗'
 
@@ -151,8 +149,8 @@ module Babushka
     end
 
     def self.log_exception exception
-      log_error "#{exception.backtrace.first}: #{exception.message}"
-      debug exception.backtrace * "\n"
+      LogHelpers.log_error "#{exception.backtrace.first}: #{exception.message}"
+      LogHelpers.debug exception.backtrace * "\n"
     end
 
     def self.log_table headings, rows
@@ -171,7 +169,7 @@ module Babushka
       ].concat(
         all_rows[1..-1].map {|row| row.join(' | ') }
       ).each {|row|
-        log row
+        LogHelpers.log(row)
       }
     end
 

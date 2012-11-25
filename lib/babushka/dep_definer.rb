@@ -9,6 +9,9 @@ module Babushka
     include RunHelpers
     extend RunHelpers
 
+    include ResourceHelpers
+    extend ResourceHelpers
+
     include Prompt::Helpers
     extend Prompt::Helpers
     include VersionOf::Helpers
@@ -120,14 +123,18 @@ module Babushka
       @current_platform
     end
 
-    def on platform, &blk
-      if [*chooser].include? platform
+    def on platform, values = nil, &blk
+      if blk.nil?
+        Chooser.new(chooser_choices).on(platform, values)
+      elsif [*chooser].include? platform
         @current_platform = platform
         blk.call.tap {
           @current_platform = nil
         }
       end
     end
+
+    alias_method :via, :on
 
     def chooser
       Babushka.host.match_list

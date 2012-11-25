@@ -1,23 +1,22 @@
 module Babushka
   class PathChecker
-    extend ShellHelpers
 
     def self.in_path? provided_list
       commands = [provided_list].flatten(1).versions
 
       cmds_in_path?(commands) and matching_versions?(commands) {|cmd|
-        shell("#{cmd.name} --version")
+        ShellHelpers.shell("#{cmd.name} --version")
       }
     end
 
     private
 
     def self.cmds_in_path? commands
-      dir_hash = [*commands].group_by {|cmd| cmd_dir(cmd.name) }
+      dir_hash = [*commands].group_by {|cmd| ShellHelpers.cmd_dir(cmd.name) }
 
       if dir_hash.keys.compact.length > 1
-        log_error "These commands run from more than one place."
-        log_error dir_hash.values.map {|cmds|
+        LogHelpers.log_error "These commands run from more than one place."
+        LogHelpers.log_error dir_hash.values.map {|cmds|
             cmd_location_str_for cmds
           }.to_list(:oxford => true, :conj => 'but').end_with('.')
         unmeetable! unless Prompt.confirm("Multiple installations might indicate a problem. Meet anyway?", :default => 'n')
@@ -25,9 +24,9 @@ module Babushka
         dir_hash[nil].blank?.tap {|result|
           if result
             cmds = dir_hash.values.first
-            log cmd_location_str_for(cmds).end_with('.') unless cmds.blank?
+            LogHelpers.log cmd_location_str_for(cmds).end_with('.') unless cmds.blank?
           else
-            log "#{dir_hash[nil].map {|i| "'#{i}'" }.to_list} #{dir_hash[nil].length == 1 ? 'is' : 'are'} missing."
+            LogHelpers.log "#{dir_hash[nil].map {|i| "'#{i}'" }.to_list} #{dir_hash[nil].length == 1 ? 'is' : 'are'} missing."
           end
         }
       end
@@ -43,9 +42,9 @@ module Babushka
         else
           hsh[cmd] = potential_versions.detect {|piece| cmd.matches?(piece) }
           if hsh[cmd] == cmd.version
-            log_ok "#{cmd.name} is #{cmd.version}."
+            LogHelpers.log_ok "#{cmd.name} is #{cmd.version}."
           else
-            log "#{cmd.name} is #{hsh[cmd] || potential_versions.first}, which is#{"n't" unless hsh[cmd]} #{cmd.version}.", :as => (:ok if hsh[cmd])
+            LogHelpers.log "#{cmd.name} is #{hsh[cmd] || potential_versions.first}, which is#{"n't" unless hsh[cmd]} #{cmd.version}.", :as => (:ok if hsh[cmd])
           end
         end
         hsh
@@ -66,7 +65,7 @@ module Babushka
     end
 
     def self.cmd_location_str_for cmds
-      "#{cmds.map {|i| "'#{i.name}'" }.to_list(:conj => '&')} run#{'s' if cmds.length == 1} from #{cmd_dir(cmds.first.name)}"
+      "#{cmds.map {|i| "'#{i.name}'" }.to_list(:conj => '&')} run#{'s' if cmds.length == 1} from #{ShellHelpers.cmd_dir(cmds.first.name)}"
     end
   end
 end

@@ -3,48 +3,46 @@
 module Babushka
   class Cmdline
     class Helpers
-      extend LogHelpers
-
       def self.print_version opts = {}
         if opts[:full]
-          log "Babushka v#{VERSION} (#{Base.ref}), (c) 2012 Ben Hoskings <ben@hoskings.net>"
+          LogHelpers.log "Babushka v#{VERSION} (#{Base.ref}), (c) 2012 Ben Hoskings <ben@hoskings.net>"
         else
-          log "#{VERSION} (#{Base.ref})"
+          LogHelpers.log "#{VERSION} (#{Base.ref})"
         end
       end
 
       def self.print_usage
-        log "\nThe gist:"
-        log "  #{Base.program_name} <command> [options]"
-        log "\nAlso:"
-        log "  #{Base.program_name} help <command>  # Print command-specific usage info"
-        log "  #{Base.program_name} <dep name>      # A shortcut for 'babushka meet <dep name>'"
-        log "  #{Base.program_name} babushka        # Update babushka itself (what babushka.me/up does)"
+        LogHelpers.log "\nThe gist:"
+        LogHelpers.log "  #{Base.program_name} <command> [options]"
+        LogHelpers.log "\nAlso:"
+        LogHelpers.log "  #{Base.program_name} help <command>  # Print command-specific usage info"
+        LogHelpers.log "  #{Base.program_name} <dep name>      # A shortcut for 'babushka meet <dep name>'"
+        LogHelpers.log "  #{Base.program_name} babushka        # Update babushka itself (what babushka.me/up does)"
       end
 
       def self.print_handlers
-        log "\nCommands:"
+        LogHelpers.log "\nCommands:"
         Handler.all.each {|handler|
-          log "  #{handler.name.ljust(10)} #{handler.description}"
+          LogHelpers.log "  #{handler.name.ljust(10)} #{handler.description}"
         }
       end
 
       def self.print_examples
-        log "\nExamples:"
-        log "  # Inspect the 'system' dep (and all its sub-deps) without touching the system.".colorize('grey')
-        log "  #{Base.program_name} system --dry-run"
-        log "\n"
-        log "  # Meet the 'fish' dep (i.e. install fish and all its dependencies).".colorize('grey')
-        log "  #{Base.program_name} fish"
-        log "\n"
-        log "  # Meet the 'user setup' dep, printing lots of debugging (including realtime".colorize('grey')
-        log "  # shell command output).".colorize('grey')
-        log "  #{Base.program_name} 'user setup' --debug"
+        LogHelpers.log "\nExamples:"
+        LogHelpers.log "  # Inspect the 'system' dep (and all its sub-deps) without touching the system.".colorize('grey')
+        LogHelpers.log "  #{Base.program_name} system --dry-run"
+        LogHelpers.log "\n"
+        LogHelpers.log "  # Meet the 'fish' dep (i.e. install fish and all its dependencies).".colorize('grey')
+        LogHelpers.log "  #{Base.program_name} fish"
+        LogHelpers.log "\n"
+        LogHelpers.log "  # Meet the 'user setup' dep, printing lots of debugging (including realtime".colorize('grey')
+        LogHelpers.log "  # shell command output).".colorize('grey')
+        LogHelpers.log "  #{Base.program_name} 'user setup' --debug"
       end
 
       def self.print_notes
-        log "\nCommands can be abbrev'ed, as long as they remain unique."
-        log "  e.g. '#{Base.program_name} l' is short for '#{Base.program_name} list'."
+        LogHelpers.log "\nCommands can be abbrev'ed, as long as they remain unique."
+        LogHelpers.log "  e.g. '#{Base.program_name} l' is short for '#{Base.program_name} list'."
       end
 
       def self.search_results_for q
@@ -62,18 +60,18 @@ module Babushka
       end
 
       def self.print_search_results search_term, results
-        log "The webservice knows about #{results.length} dep#{'s' unless results.length == 1} that match#{'es' if results.length == 1} '#{search_term}':"
-        log ""
+        LogHelpers.log "The webservice knows about #{results.length} dep#{'s' unless results.length == 1} that match#{'es' if results.length == 1} '#{search_term}':"
+        LogHelpers.log ""
         Logging.log_table(
           ['Name', 'Source', 'Runs', ' ✓', 'Command'],
           results
         )
         if (custom_sources = results.select {|r| r[1][github_autosource_regex].nil? }.length) > 0
-          log ""
-          log "✣  #{custom_sources == 1 ? 'This source has a custom URI' : 'These sources have custom URIs'}, so babushka can't discover #{custom_sources == 1 ? 'it' : 'them'} automatically."
-          log "   You can run #{custom_sources == 1 ? 'its' : 'their'} deps in the same way, though, once you add #{custom_sources == 1 ? 'it' : 'them'} manually:"
-          log "   $ #{Base.program_name} sources -a <alias> <uri>"
-          log "   $ #{Base.program_name} <alias>:<dep>"
+          LogHelpers.log ""
+          LogHelpers.log "✣  #{custom_sources == 1 ? 'This source has a custom URI' : 'These sources have custom URIs'}, so babushka can't discover #{custom_sources == 1 ? 'it' : 'them'} automatically."
+          LogHelpers.log "   You can run #{custom_sources == 1 ? 'its' : 'their'} deps in the same way, though, once you add #{custom_sources == 1 ? 'it' : 'them'} manually:"
+          LogHelpers.log "   $ #{Base.program_name} sources -a <alias> <uri>"
+          LogHelpers.log "   $ #{Base.program_name} <alias>:<dep>"
         end
       end
 
@@ -106,11 +104,11 @@ module Babushka
           source.name
         }.each {|(source,items)|
           indent = (items.map {|item| "#{source.name}:#{item.name}".length }.max || 0) + 3
-          log ""
-          log "# #{source.name} (#{source.type})#{" - #{source.uri}" unless source.implicit?}"
-          log "# #{items.length} #{to_list.to_s.chomp(items.length == 1 ? 's' : '')}#{" matching '#{filter_str}'" unless filter_str.nil?}:"
+          LogHelpers.log ""
+          LogHelpers.log "# #{source.name} (#{source.type})#{" - #{source.uri}" unless source.implicit?}"
+          LogHelpers.log "# #{items.length} #{to_list.to_s.chomp(items.length == 1 ? 's' : '')}#{" matching '#{filter_str}'" unless filter_str.nil?}:"
           items.each {|dep|
-            log "#{context} #{"'#{source.name}:#{dep.name}'".ljust(indent)}"
+            LogHelpers.log "#{context} #{"'#{source.name}:#{dep.name}'".ljust(indent)}"
           }
         }
       end

@@ -4,13 +4,6 @@ module Babushka
   class SourceLoadError < LoadError
   end
   class Source
-    include GitHelpers
-    include LogHelpers
-    extend LogHelpers
-    extend ShellHelpers
-    include PathHelpers
-    extend PathHelpers
-
     attr_reader :name, :uri, :deps, :templates
 
     def self.present
@@ -26,7 +19,7 @@ module Babushka
     def self.for_path path
       @sources ||= {}
       @sources[default_name_for_uri(path)] ||= begin
-        remote = shell "git config remote.origin.url", :cd => path
+        remote = ShellHelpers.shell("git config remote.origin.url", :cd => path)
         if remote.nil?
           Source.new path # local source
         else
@@ -151,10 +144,10 @@ module Babushka
 
     def add!
       if !cloneable?
-        log "Nothing to add for #{name}."
+        LogHelpers.log "Nothing to add for #{name}."
       else
         raise_unless_addable!
-        log_block "Adding #{name} from #{uri}" do
+        LogHelpers.log_block "Adding #{name} from #{uri}" do
           update!
         end
       end
@@ -181,7 +174,7 @@ module Babushka
             load f
           end
         }
-        debug "Loaded #{deps.count} deps from #{path}."
+        LogHelpers.debug "Loaded #{deps.count} deps from #{path}."
         @loaded = true
       end
     rescue StandardError, SyntaxError => e
@@ -191,21 +184,21 @@ module Babushka
 
     def update!
       if @updated
-        debug "Already pulled #{name} (#{uri}) this session."
+        LogHelpers.debug "Already pulled #{name} (#{uri}) this session."
         true
       elsif @updated == false
-        debug "Not updating #{name} (#{uri}) - it's offline."
+        LogHelpers.debug "Not updating #{name} (#{uri}) - it's offline."
       elsif Base.sources.local_only?
-        debug "Not pulling #{name} (#{uri}) - in local-only mode."
+        LogHelpers.debug "Not pulling #{name} (#{uri}) - in local-only mode."
         true
       elsif repo.exists? && repo.dirty?
-        log "Not updating #{name} (#{path}) because there are local changes."
+        LogHelpers.log "Not updating #{name} (#{path}) because there are local changes."
       elsif repo.exists? && repo.ahead?
         @updated = false # So the ahead? check doesn't run again, for when there's no network.
-        log "Not updating #{name} (#{path}) because it's ahead of origin."
+        LogHelpers.log "Not updating #{name} (#{path}) because it's ahead of origin."
       else
-        git(uri, :to => path, :log => true).tap {|result|
-          log "Marking #{uri} as offline for this run." unless result
+        GitHelpers.git(uri, :to => path, :log => true).tap {|result|
+          LogHelpers.log "Marking #{uri} as offline for this run." unless result
           @updated = result || false
         }
       end

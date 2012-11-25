@@ -13,8 +13,6 @@ module Babushka
   end
 
   class Prompt
-    extend LogHelpers
-
     module Helpers
       def confirm message, opts = {}, &block
         Prompt.confirm message, opts, &block
@@ -30,7 +28,7 @@ module Babushka
           possible_matches.first
         end or false
       else
-        log "Similar: #{possible_matches.map {|d| "'#{d}'" }.join(', ')}"
+        LogHelpers.log "Similar: #{possible_matches.map {|d| "'#{d}'" }.join(', ')}"
         get_value("Did you mean any of those".colorize('grey'), :default => possible_matches.first)
       end
     end
@@ -48,7 +46,7 @@ module Babushka
       elsif answer
         block.call
       elsif opts[:otherwise]
-        log opts[:otherwise]
+        LogHelpers.log opts[:otherwise]
       end
     end
 
@@ -103,9 +101,9 @@ module Babushka
     def log_choice_descriptions descriptions
       unless descriptions.nil?
         max_length = descriptions.keys.map(&:length).max
-        log "There are #{descriptions.length} choices:"
+        LogHelpers.log "There are #{descriptions.length} choices:"
         descriptions.each_pair {|choice,description|
-          log "#{choice.ljust(max_length)} - #{description}"
+          LogHelpers.log "#{choice.ljust(max_length)} - #{description}"
         }
       end
     end
@@ -117,7 +115,7 @@ module Babushka
         raise PromptUnavailable.new(message)
       else
         log_choice_descriptions opts[:choice_descriptions]
-        log message, :newline => false
+        LogHelpers.log message, :newline => false
 
         if opts[:default] && !opts[:ask]
           puts '.'
@@ -145,7 +143,7 @@ module Babushka
       end
 
       if error
-        log "#{error.end_with('.')} #{message}", :newline => false
+        LogHelpers.log "#{error.end_with('.')} #{message}", :newline => false
         read_value_from_prompt message, opts, &block
       else
         value
